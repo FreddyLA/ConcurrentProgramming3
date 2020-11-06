@@ -15,7 +15,7 @@ public class Barrier {
     }
        
     public static Barrier create(CarDisplayI cd) {
-        return new DynamicBarrier(cd);
+        return new SafeBarrier(cd);
     }
 
     public void sync(int no) throws InterruptedException { 

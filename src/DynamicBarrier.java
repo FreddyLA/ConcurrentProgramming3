@@ -7,7 +7,6 @@
 class DynamicBarrier extends Barrier {
 
     int arrived = 0;
-    int passed = 0;
     int threshold = 9;
     boolean active = false;
     boolean[] hasPassed = new boolean[9];
@@ -23,13 +22,7 @@ class DynamicBarrier extends Barrier {
 
         if (!active) return;
 
-        if(hasPassed[no]) {
-            while (passed > 0) {
-                wait();
-            }
-            hasPassed[no] = false;
-        }
-
+        //Prevents cars from arriving at the barrier if a new threshold is pending and
         if(arrived >= threshold){
             while(newThresholdPending){
                 wait();
@@ -42,17 +35,15 @@ class DynamicBarrier extends Barrier {
             wait();
         }
 
-        if(passed == 0){
+        if(!barrierReleased){
             barrierReleased = true;
             notifyAll();
         }
 
         hasPassed[no] = true;
-        passed++;
+        arrived--;
 
-        if(passed >= threshold) {
-            arrived = 0;
-            passed = 0;
+        if(arrived == 0) {
             barrierReleased = false;
             notifyAll();
         }
@@ -61,21 +52,21 @@ class DynamicBarrier extends Barrier {
     @Override
     public synchronized void on() {
         active = true;
+        barrierReleased = false;
+        arrived = 0;
     }
 
     @Override
     public synchronized void off() {
         active = false;
-        arrived = 0;
+        barrierReleased = true;
         notifyAll();
     }
 
     @Override
     /* Set barrier threshold */
     public synchronized void set(int k) {
-
         try {
-
             if(k > threshold && arrived > 0){
                 newThresholdPending = true;
                 while (arrived > 0) {
