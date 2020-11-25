@@ -17,9 +17,9 @@ class NaiveBarrier extends Barrier {
     public synchronized void sync(int no) throws InterruptedException {
 
         if (!active) return;
-        
-        arrived++;
 
+        arrived++;
+        //Thread.sleep(1000); //Demonstrates how cars can be made to wait after barrier has been released. Doesn't work in current implementation
         if (arrived < 9) {
             wait();
         } else {
@@ -40,14 +40,9 @@ class NaiveBarrier extends Barrier {
         notifyAll();
     }
 
-
     @Override
     // May be (ab)used for robustness testing
-    public void set(int k) {
-        synchronized (this) {
-            notifyAll();
-        }
+    public synchronized void set(int k) {
+        notifyAll();
     }
-
-
 }

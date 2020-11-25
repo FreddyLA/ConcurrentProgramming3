@@ -26,6 +26,16 @@ public class CarTest extends Thread {
                 cars.stopAll();
                 break;
 
+            case 1:
+                cars.removeCar(1);
+                cars.restoreCar(1);
+                break;
+
+            case 2:
+                cars.restoreCar(1);
+                cars.removeCar(1);
+                break;
+
             case 19:
                 // Demonstration of speed setting.
                 // Will result in jumpy movement though.

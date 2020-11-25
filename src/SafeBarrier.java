@@ -4,12 +4,12 @@
 
 //Hans Henrik Lovengreen     Oct 30, 2020
 
+import java.util.Arrays;
+
 class SafeBarrier extends Barrier {
 
-    int arrived = 0;
-    int passed = 0;
-    boolean active = false;
-    boolean[] hasPassed = new boolean[9];
+    int arrived;
+    boolean active;
     boolean barrierReleased;
     
     public SafeBarrier(CarDisplayI cd) {
@@ -21,11 +21,8 @@ class SafeBarrier extends Barrier {
 
         if (!active) return;
 
-        if(hasPassed[no]) {
-            while (passed > 0) {
-                wait();
-            }
-            hasPassed[no] = false;
+        while(barrierReleased){
+            wait();
         }
 
         arrived++;
@@ -39,10 +36,9 @@ class SafeBarrier extends Barrier {
             notifyAll();
         }
 
-        hasPassed[no] = true;
         arrived--;
 
-        if(arrived == 0) {
+        if(arrived == 0 && active) {
             barrierReleased = false;
             notifyAll();
         }
@@ -50,16 +46,19 @@ class SafeBarrier extends Barrier {
 
     @Override
     public synchronized void on() {
-        active = true;
-        barrierReleased = false;
-        arrived = 0;
+        if(!active) {
+            active = true;
+            barrierReleased = false;
+        }
     }
 
     @Override
     public synchronized void off() {
-        active = false;
-        barrierReleased = true;
-        notifyAll();
+        if(active) {
+            active = false;
+            barrierReleased = true;
+            notifyAll();
+        }
     }
 
 
@@ -67,7 +66,7 @@ class SafeBarrier extends Barrier {
     // May be (ab)used for robustness testing
     public void set(int k) {
         synchronized (this){
-            notifyAll();
+//            notifyAll();
         }
     }
 }

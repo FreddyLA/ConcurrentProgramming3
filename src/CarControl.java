@@ -29,9 +29,7 @@ class Conductor extends Thread {
 
     CarI car;
     boolean inAlley;
-    boolean removed;
     boolean enteredNewPos;
-    boolean leftCurPos;
 
     public Conductor(int no, CarDisplayI cd, Gate g, Field field, Alley alley, Barrier barrier) {
 
@@ -112,25 +110,20 @@ class Conductor extends Thread {
 
                 newpos = nextPos(curpos);
                 enteredNewPos = false;
-                leftCurPos = false;
 
                 if (atBarrier(curpos)) barrier.sync(no);
                 
                 if (atEntry(curpos)) {
-                    //Section 1
                     alley.enter(no);
                     inAlley = true;
                 }
 
-                //Section 2
                 field.enter(no, newpos);
                 enteredNewPos = true;
 
-                //Section 3
                 car.driveTo(newpos);
 
                 field.leave(curpos);
-                leftCurPos = true;
 
                 if (atExit(newpos)) {
                     alley.leave(no);
@@ -141,28 +134,21 @@ class Conductor extends Thread {
             }
 
         } catch (Exception e) {
-            if(!(e instanceof InterruptedException)) {
+            if(!(e instanceof InterruptedException)) { //We don't really care about InterrupedExceptions :)
                 cd.println("Exception in Conductor no. " + no);
                 System.err.println("Exception in Conductor no. " + no + ":" + e);
                 e.printStackTrace();
             }
         }
-    }
 
-    public void removeCar(){
         cd.deregister(car);
+        field.leave(curpos);
 
-        if (inAlley) {
+        if (inAlley)
             alley.leave(no);
-        }
 
-        if(enteredNewPos) {
+        if(enteredNewPos)
             field.leave(newpos);
-        }
-
-        if (!leftCurPos) {
-            field.leave(curpos);
-        }
     }
 }
 
@@ -212,15 +198,12 @@ public class CarControl implements CarControlI{
    }
     
     public synchronized void removeCar(int no) {
-        if(!conductor[no].removed) {
+        if(conductor[no].isAlive())
             conductor[no].interrupt();
-            conductor[no].removeCar();
-            conductor[no].removed = true;
-        }
     }
 
     public synchronized void restoreCar(int no) {
-        if(conductor[no].removed) {
+        if(!conductor[no].isAlive()) {
             conductor[no] = new Conductor(no, cd, gate[no], field, alley, barrier);
             conductor[no].setName("Conductor-" + no);
             conductor[no].start();

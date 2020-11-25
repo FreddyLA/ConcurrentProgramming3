@@ -17,7 +17,7 @@ public class MonGate extends Gate {
 
     public synchronized void open() {
         isOpen = true;
-        notify();
+        notifyAll();
     }
 
     public synchronized void close() {

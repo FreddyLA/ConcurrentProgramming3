@@ -6,13 +6,14 @@
 
 class DynamicBarrier extends Barrier {
 
-    int arrived = 0;
+    int arrived;
     int threshold = 9;
-    boolean active = false;
-    boolean[] hasPassed = new boolean[9];
+
+    boolean active;
     boolean newThresholdPending;
     boolean barrierReleased;
-    
+    boolean oldThresholdReleased;
+
     public DynamicBarrier(CarDisplayI cd) {
         super(cd);
     }
@@ -22,11 +23,8 @@ class DynamicBarrier extends Barrier {
 
         if (!active) return;
 
-        //Prevents cars from arriving at the barrier if a new threshold is pending and
-        if(arrived >= threshold){
-            while(newThresholdPending){
-                wait();
-            }
+        while(barrierReleased || (newThresholdPending && oldThresholdReleased)){
+            wait();
         }
 
         arrived++;
@@ -37,10 +35,10 @@ class DynamicBarrier extends Barrier {
 
         if(!barrierReleased){
             barrierReleased = true;
+            oldThresholdReleased = true;
             notifyAll();
         }
 
-        hasPassed[no] = true;
         arrived--;
 
         if(arrived == 0) {
@@ -51,16 +49,21 @@ class DynamicBarrier extends Barrier {
 
     @Override
     public synchronized void on() {
-        active = true;
-        barrierReleased = false;
-        arrived = 0;
+        if(!active) {
+            active = true;
+            barrierReleased = false;
+            oldThresholdReleased = false;
+        }
     }
 
     @Override
     public synchronized void off() {
-        active = false;
-        barrierReleased = true;
-        notifyAll();
+        if(active) {
+            active = false;
+            barrierReleased = true;
+            oldThresholdReleased = true;
+            notifyAll();
+        }
     }
 
     @Override
@@ -69,7 +72,8 @@ class DynamicBarrier extends Barrier {
         try {
             if(k > threshold && arrived > 0){
                 newThresholdPending = true;
-                while (arrived > 0) {
+                oldThresholdReleased = false;
+                while (!oldThresholdReleased) {
                     wait();
                 }
                 newThresholdPending = false;
