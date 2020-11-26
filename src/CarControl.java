@@ -134,21 +134,21 @@ class Conductor extends Thread {
             }
 
         } catch (Exception e) {
-            if(!(e instanceof InterruptedException)) { //We don't really care about InterrupedExceptions :)
+            if(!(e instanceof InterruptedException)) {
                 cd.println("Exception in Conductor no. " + no);
                 System.err.println("Exception in Conductor no. " + no + ":" + e);
                 e.printStackTrace();
+            } else {
+                cd.deregister(car);
+                field.leave(curpos);
+
+                if (inAlley)
+                    alley.leave(no);
+
+                if(enteredNewPos)
+                    field.leave(newpos);
             }
         }
-
-        cd.deregister(car);
-        field.leave(curpos);
-
-        if (inAlley)
-            alley.leave(no);
-
-        if(enteredNewPos)
-            field.leave(newpos);
     }
 }
 
