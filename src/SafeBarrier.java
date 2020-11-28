@@ -4,8 +4,6 @@
 
 //Hans Henrik Lovengreen     Oct 30, 2020
 
-import java.util.Arrays;
-
 class SafeBarrier extends Barrier {
 
     int arrived;
@@ -66,7 +64,7 @@ class SafeBarrier extends Barrier {
     // May be (ab)used for robustness testing
     public void set(int k) {
         synchronized (this){
-//            notifyAll();
+            notifyAll();
         }
     }
 }

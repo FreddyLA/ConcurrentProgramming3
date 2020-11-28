@@ -35,7 +35,6 @@ class DynamicBarrier extends Barrier {
 
         if(!barrierReleased){
             barrierReleased = true;
-            oldThresholdReleased = true;
             notifyAll();
         }
 
@@ -43,6 +42,7 @@ class DynamicBarrier extends Barrier {
 
         if(arrived == 0) {
             barrierReleased = false;
+            oldThresholdReleased = true;
             notifyAll();
         }
     }
@@ -85,5 +85,4 @@ class DynamicBarrier extends Barrier {
             e.printStackTrace();
         }
     }
-
 }
